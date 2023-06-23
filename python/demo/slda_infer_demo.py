@@ -12,8 +12,7 @@ if sys.version_info < (3,0):
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        sys.stderr.write("Usage:python {} {} {}\n".format(
-            sys.argv[0], "model_dir", "conf_file"))
+        sys.stderr.write(f"Usage:python {sys.argv[0]} model_dir conf_file\n")
         exit(-1)
     # 获取参数
     model_dir = sys.argv[1]
@@ -24,11 +23,8 @@ if __name__ == '__main__':
         input_text = input("Enter Document: ")
         # 分词
         seg_list = inference_engine_wrapper.tokenize(input_text.strip())
-        # 构建句子结构,5个词为一个句子
-        sentences = []
         length = len(seg_list)
-        for index in range(0, length, 5):
-            sentences.append(seg_list[index: index + 5])
+        sentences = [seg_list[index: index + 5] for index in range(0, length, 5)]
         # 进行推断
         topic_dist = inference_engine_wrapper.slda_infer(sentences)
         # 打印结果

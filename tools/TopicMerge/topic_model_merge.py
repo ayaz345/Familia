@@ -26,9 +26,11 @@ class TopicModelMerge(object):
             model_dir: 模型目录
             conf_file: 模型配置文件
         """
-        parameters = self.config_parser(model_dir + '/' + conf_file)
+        parameters = self.config_parser(f'{model_dir}/{conf_file}')
         self._num_topics = int(parameters["num_topics"])
-        self._word_topic_file = model_dir + '/' + parameters["word_topic_file"].strip('"')
+        self._word_topic_file = f'{model_dir}/' + parameters[
+            "word_topic_file"
+        ].strip('"')
 
 
     def conv_topic_word(self):
@@ -121,7 +123,7 @@ class TopicModelMerge(object):
             temp_set = set()
             while len(indexs):
                 temp_set |= indexs
-                temp_list = list()
+                temp_list = []
                 for index in indexs:
                     for tid in overlap_pair[index]:
                         for ind in d.pop(tid, []):
@@ -154,21 +156,18 @@ class TopicModelMerge(object):
         """
         topic_word, topic_sum = self.conv_topic_word()
         topk_items = self.select_topk(topic_word, topic_sum, topk)
-        # 获取每个主题前K个词(不包含概率)
-        topk_words = []
-        for topic_id in xrange(self._num_topics):
-            topk_words.append(set([item[0] for item in topk_items[topic_id]]))
-
+        topk_words = [
+            {item[0] for item in topk_items[topic_id]}
+            for topic_id in xrange(self._num_topics)
+        ]
         overlap_pair = []
         for tid1 in xrange(self._num_topics - 1):
             for tid2 in xrange(tid1 + 1, self._num_topics):
                 if not Jac_opt:             # Jaccard Similarity
                     overlap = float(len(topk_words[tid1] & topk_words[tid2])) / len(topk_words[tid1] | topk_words[tid2])
-                else:                       # Weighted Jaccard Similarity
+                else:           # Weighted Jaccard Similarity
                     overlap_set = topk_words[tid1] & topk_words[tid2]
-                    min_value = {}
-                    for word in overlap_set:
-                        min_value[word] = 1.0
+                    min_value = {word: 1.0 for word in overlap_set}
                     w_union = 0.0
                     for word, prob in topk_items[tid1]:
                         w_union += prob
@@ -187,11 +186,10 @@ class TopicModelMerge(object):
                     overlap_pair.append((tid1, tid2))
         # 使用并查集算法合并主题对
         dis_sets = self.disjoint_set(overlap_pair)
-        redundant_topic_cnt = 0
-        for item in dis_sets:
-            redundant_topic_cnt += len(item)
-        print("Merge {} redundant topics into {} topics (sets).".format(
-                redundant_topic_cnt, len(dis_sets)))
+        redundant_topic_cnt = sum(len(item) for item in dis_sets)
+        print(
+            f"Merge {redundant_topic_cnt} redundant topics into {len(dis_sets)} topics (sets)."
+        )
         # 对属于同一类的主题进行合并
         for index in xrange(len(dis_sets)):
             current_list = list(dis_sets[index])
@@ -210,11 +208,9 @@ class TopicModelMerge(object):
             for word_id, cnt in topic_word[topic_id]:
                 word_dict[word_id] += cnt
             for word_id, cnt in word_dict.items():
-                word_topic[word_id].append("{}:{}".format(new_topic_index, cnt))
-        print("Now, in total we have {} refined topics.".format(new_topic_index + 1))
-        # 输出模型到文件
-        out_file = open(output_file, 'w')
-        for word_id in word_topic.keys():
-            out_file.writelines("{} {}\n".format(word_id, ' '.join(word_topic[word_id])))
-        out_file.close()
+                word_topic[word_id].append(f"{new_topic_index}:{cnt}")
+        print(f"Now, in total we have {new_topic_index + 1} refined topics.")
+        with open(output_file, 'w') as out_file:
+            for word_id in word_topic.keys():
+                out_file.writelines(f"{word_id} {' '.join(word_topic[word_id])}\n")
 

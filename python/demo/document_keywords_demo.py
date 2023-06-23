@@ -12,8 +12,7 @@ if sys.version_info < (3,0):
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        sys.stderr.write("Usage:python {} {} {}.\n".format(
-            sys.argv[0], "model_dir", "conf_file"))
+        sys.stderr.write(f"Usage:python {sys.argv[0]} model_dir conf_file.\n")
         exit(-1)
 
     # 获取参数

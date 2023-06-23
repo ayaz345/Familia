@@ -18,12 +18,11 @@ def print_result(result_list):
     if result_list is None:
         return
     for (word, distance) in result_list:
-        print("{}\t\t\t{}".format(word, distance))
+        print(f"{word}\t\t\t{distance}")
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        sys.stderr.write("Usage: python {} {} {}\n".format(
-            sys.argv[0], "model_dir", "emb_file"))
+        sys.stderr.write(f"Usage: python {sys.argv[0]} model_dir emb_file\n")
         exit(-1)
     model_dir = sys.argv[1]
     emb_file = sys.argv[2]

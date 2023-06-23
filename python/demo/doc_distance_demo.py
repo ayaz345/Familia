@@ -12,8 +12,7 @@ if sys.version_info < (3,0):
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        sys.stderr.write("Usage:python {} {} {}.\n".format(
-            sys.argv[0], "model_dir", "conf_file"))
+        sys.stderr.write(f"Usage:python {sys.argv[0]} model_dir conf_file.\n")
         exit(-1)
 
     # 获取参数
@@ -29,5 +28,5 @@ if __name__ == '__main__':
         doc2_seg = inference_engine_wrapper.tokenize(doc2)
         distances = inference_engine_wrapper.cal_doc_distance(doc1_seg, doc2_seg)
         # 打印结果
-        print("Jensen-Shannon Divergence = {}".format(distances[0]))
-        print("Hellinger Distance = {}".format(distances[1]))
+        print(f"Jensen-Shannon Divergence = {distances[0]}")
+        print(f"Hellinger Distance = {distances[1]}")

@@ -12,8 +12,7 @@ if sys.version_info < (3,0):
 
 if __name__ == '__main__':
     if len(sys.argv) < 4:
-        sys.stderr.write("Usage:python {} {} {} {}.\n".format(
-            sys.argv[0], "model_dir", "conf_file", "emb_file"))
+        sys.stderr.write(f"Usage:python {sys.argv[0]} model_dir conf_file emb_file.\n")
         exit(-1)
 
     # 获取参数
@@ -30,5 +29,5 @@ if __name__ == '__main__':
         doc_seg = inference_engine_wrapper.tokenize(doc)
         distances = inference_engine_wrapper.cal_query_doc_similarity(query_seg, doc_seg)
         # 打印结果
-        print("LDA Similarity = {}".format(distances[0]))
-        print("TWE similarity = {}".format(distances[1]))
+        print(f"LDA Similarity = {distances[0]}")
+        print(f"TWE similarity = {distances[1]}")

@@ -53,20 +53,18 @@ def read_topic_words_from_file(topic_words_file_name='topic_words.lda.txt'):
         logger.warn(f"topic_words file not found: {file_path}")
         return topic_words
     with open(file_path, 'r') as f:
-        line = f.readline()
-        while line:
+        while line := f.readline():
             pos = line.find('=')
             line = line[pos + 2:]
             topic_id, num = line.strip().split('\t')
             topic_id, num = int(topic_id), int(num)
             f.readline()
-            items = list()
-            for i in range(num):
+            items = []
+            for _ in range(num):
                 data = f.readline()
                 word, score = data.strip().split('\t')
                 items.append([word, float(score)])
             topic_words[topic_id] = items
-            line = f.readline()
     return topic_words
 
 
@@ -92,9 +90,7 @@ def strip_to_none(text: str):
     text = re.sub(RE_BACKSPACES, '', text)
     if len(text) == 0:
         return None
-    if text == 'None':
-        return None
-    return text
+    return None if text == 'None' else text
 
 
 def response(success: bool = True, data=None, message=None):

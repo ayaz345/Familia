@@ -27,10 +27,12 @@ class TopicModelCompress(object):
             model_dir: 模型目录
             conf_file: 模型配置文件
         """
-        parameters = self.config_parser(model_dir + '/' + conf_file)
+        parameters = self.config_parser(f'{model_dir}/{conf_file}')
         self._num_topics = int(parameters["num_topics"])
         self._beta = float(parameters["beta"])
-        self._word_topic_file = model_dir + '/' + parameters["word_topic_file"].strip('"')
+        self._word_topic_file = f'{model_dir}/' + parameters[
+            "word_topic_file"
+        ].strip('"')
         # 初始化词表大小为0，后续统计
         self._num_vocabs = 0
 
@@ -105,13 +107,11 @@ class TopicModelCompress(object):
         word_topic = ddict(list)
         for topic_id in range(self._num_topics):
             for word_id, cnt in topic_word[topic_id]:
-                word_topic[word_id].append("{}:{}".format(topic_id, cnt))
+                word_topic[word_id].append(f"{topic_id}:{cnt}")
 
-        # 保存压缩后模型
-        out_file = open(output_file, 'w')
-        for word_id in word_topic.keys():
-            out_file.writelines("{} {}\n".format(word_id, ' '.join(word_topic[word_id])))
-        out_file.close()
+        with open(output_file, 'w') as out_file:
+            for word_id in word_topic.keys():
+                out_file.writelines(f"{word_id} {' '.join(word_topic[word_id])}\n")
 
 
     def alias_compress(self, compress_thresh, output_file):
@@ -130,26 +130,28 @@ class TopicModelCompress(object):
         _, topic_sum = self.conv_topic_word()
         beta_sum = self._beta * self._num_vocabs
         word_topic = ddict(list)
-        out_file = open(output_file, 'w')
-        with open(self._word_topic_file) as f:
-            # 逐行处理每个词语
-            for line in f:
-                cols = line.strip().split()
-                word_id = int(cols[0])
-                proportion = 0.0
-                word_topic_row = []
-                for item in cols[1:]:
-                    topic_id, cnt = [int(a) for a in item.split(':')]
-                    # 计算在对应主题下占比
-                    item_proportion = (cnt + self._beta) / (topic_sum[topic_id] + beta_sum)
-                    proportion += item_proportion
-                    word_topic_row.append((topic_id, cnt, item_proportion))
-                threshold = proportion * compress_thresh
-                # 过滤低于阈值的主题条目
-                word_topic_row = filter(lambda item: item[2] >= threshold, word_topic_row)
-
-                # 输出压缩后词语
-                if word_topic_row:
-                    topic_dist = ' '.join([str(topic_id)+':'+str(cnt) for topic_id, cnt, _ in word_topic_row])
-                    out_file.writelines("{} {}\n".format(word_id, topic_dist))
-        out_file.close()
+        with open(output_file, 'w') as out_file:
+            with open(self._word_topic_file) as f:
+                        # 逐行处理每个词语
+                for line in f:
+                    cols = line.strip().split()
+                    word_id = int(cols[0])
+                    proportion = 0.0
+                    word_topic_row = []
+                    for item in cols[1:]:
+                        topic_id, cnt = [int(a) for a in item.split(':')]
+                        # 计算在对应主题下占比
+                        item_proportion = (cnt + self._beta) / (topic_sum[topic_id] + beta_sum)
+                        proportion += item_proportion
+                        word_topic_row.append((topic_id, cnt, item_proportion))
+                    threshold = proportion * compress_thresh
+                    if word_topic_row := filter(
+                        lambda item: item[2] >= threshold, word_topic_row
+                    ):
+                        topic_dist = ' '.join(
+                            [
+                                f'{str(topic_id)}:{str(cnt)}'
+                                for topic_id, cnt, _ in word_topic_row
+                            ]
+                        )
+                        out_file.writelines(f"{word_id} {topic_dist}\n")

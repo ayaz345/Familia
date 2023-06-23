@@ -30,7 +30,7 @@ class InferenceEngineWrapper:
         """
         self._emb_file = emb_file
         self._inference_engine = familia.init_inference_engine(model_dir, conf_file, 1)
-        self._tokenizer = familia.init_tokenizer(model_dir + "/vocab_info.txt")
+        self._tokenizer = familia.init_tokenizer(f"{model_dir}/vocab_info.txt")
         if self._emb_file is None:
             return
         self._twe = familia.init_twe(model_dir, emb_file)
@@ -91,7 +91,7 @@ class InferenceEngineWrapper:
         seg_text = ""
         for sent in sentences:
             for word in sent:
-                seg_text += word + ' '
+                seg_text += f'{word} '
             seg_text = seg_text.strip() + '\t'
         seg_text = seg_text.strip()
         return familia.slda_infer(self._inference_engine, seg_text)
